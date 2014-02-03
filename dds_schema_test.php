@@ -1,6 +1,6 @@
 <?php
 /**
- * File dds_loader_test.php contains the class dds_loader_test.php
+ * Test DDS Schema creation
  *
  * @author    Aaron Harris <aharris@intacct.com>
  * @copyright 2000-2014 Intacct Corporation
