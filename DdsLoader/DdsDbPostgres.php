@@ -19,7 +19,10 @@ require_once 'DdsDb.php';
 class DdsDbPostgres extends DdsDb
 {
 
-    private $dbConn;
+    /**
+     * @var resource
+     */
+    protected $dbConn;
 
     /**
      * Create instance of DdsLoader class.  Pass valid connection parameters
@@ -59,7 +62,7 @@ class DdsDbPostgres extends DdsDb
 
         $rows = pg_fetch_all($queryRes);
         pg_free_result($queryRes);
-        return $rows;
+        return ($rows === false) ? null : $rows;
     }
 
     /**
@@ -95,11 +98,31 @@ class DdsDbPostgres extends DdsDb
 
         if ($tables === null || count($tables) == 0) {
             $query = 'select table_name from information_schema.tables where table_schema = $1';
-            $tables = $this->query($query, array('public'));
+            $tableList = $this->query($query, array('public'));
+            if (count($tableList) == 0) {
+                $tables = array();
+            } else {
+                foreach ($tableList as $table) {
+                    $tables[] = $table['table_name'];
+                }
+            }
         }
 
-        return array_key_exists(strtolower($tableName), $tables);
+        return in_array(strtolower($tableName), $tables);
 
+    }
+
+    /**
+     * Drop a table
+     *
+     * @param string $tableName name of table to drop
+     *
+     * @return null
+     */
+    public function dropTable($tableName)
+    {
+        $query = "drop table $tableName";
+        $this->execStmt($query);
     }
 
 }

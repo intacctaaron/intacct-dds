@@ -15,7 +15,8 @@
 require_once 'intacctws-php/api_session.php';
 require_once 'intacctws-php/api_post.php';
 
-require_once 'DdsLoader/DdsDbPostgres.php';
+require_once 'DdsLoader/DdsDbRedshift.php';
+require_once 'DdsLoader/DdsDbManager.php';
 
 try {
 
@@ -25,40 +26,19 @@ try {
     $session = $memcache->get($key);
     if ($session === false) {
         $session = new api_session();
-        $session->connectCredentials('asim_cmpy_awana', 'Aman', 'Aa123456!', 'intacct_dev', 'babbage');
+        $session->connectCredentials('DDS_ATLAS', 'Aaron', 'As123456!', 'intacct_dev', 'isa9Shixa');
         $memcache->set($key, $session, null, 300);
     }
 
-    $objKey = "dds_loader_test_objects";
-    $ddsObjects = $memcache->get($objKey);
-    if ($ddsObjects === false) {
-        $ddsObjects = api_post::getDdsObjects($session);
-        $memcache->set($objKey, $ddsObjects, MEMCACHE_COMPRESSED, 3000);
-    }
-
-    $intacctPg = new DdsDbPostgres(
-        "dds-dev.c808ui4qmvc1.us-west-2.redshift.amazonaws.com",
-        "asimcmpyawana",
-        "ddsdev",
-        "ExodusDds14",
-        '5439'
+    $intacctPg = new DdsDbRedshift(
+        "intacct-dds-dmllc.c808ui4qmvc1.us-west-2.redshift.amazonaws.com",
+        "ddsdmllc",
+        "ddsuser",
+        "IntacctDds2014"
     );
 
-    foreach ($ddsObjects as $ddsObject) {
-        // does the table exist?
-        // skip USERINFO
-        if ($ddsObject == 'USERINFO') {
-            continue;
-        }
+    DdsDbManager::rebuildSchema($intacctPg, $session);
 
-        if ($intacctPg->tableExists($ddsObject)) {
-            $ddl = api_post::getDdsDdl($session, $ddsObject);
-            $res = $intacctPg->execStmt($ddl);
-            printf("table $ddsObject created.\n");
-        } else {
-            printf("table $ddsObject skipped.\n");
-        }
-    }
     echo "done!";
 }
 catch (Exception $ex) {

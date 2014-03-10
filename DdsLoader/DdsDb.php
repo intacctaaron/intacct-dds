@@ -13,10 +13,12 @@
 
 abstract class DdsDb
 {
-    abstract protected function query($query, $params);
+    abstract public function query($query, $params=array());
 
-    abstract protected function execStmt($stmt, $params);
+    abstract public function execStmt($stmt, $params=array());
 
-    abstract protected function tableExists($tableName);
+    abstract public function tableExists($tableName);
+
+    abstract public function dropTable($tableName);
 
 }

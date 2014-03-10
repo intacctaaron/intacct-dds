@@ -31,7 +31,7 @@ try {
 
     // let's just extract the glaccount object
     $ddsExtractor = new DdsExtractor($session, 'Dropbox Aaron');
-    $ddsExtractor->getAll('GLACCOUNT');
+    $ddsExtractor->getAll('VENDOR');
 
 }
 catch (Exception $ex) {
