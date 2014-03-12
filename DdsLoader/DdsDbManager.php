@@ -67,7 +67,8 @@ class DdsDbManager
         $ddlSql = self::DDLSQL_PREFIX . "\n";
         foreach ($objects as $object) {
             $ddl = api_post::getDdsDdl($sess, $object);
-            $ddlSql .= "--Object $object";
+            $ddlSql .= "--Object $object\n";
+            $ddlSql .= "DROP TABLE $object;";
             $ddlSql .= $ddl . "\n";
         }
 

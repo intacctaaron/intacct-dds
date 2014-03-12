@@ -15,8 +15,9 @@
 require_once 'intacctws-php/api_session.php';
 require_once 'intacctws-php/api_post.php';
 
-require_once 'DdsLoader/DdsDbRedshift.php';
 require_once 'DdsLoader/DdsDbManager.php';
+require_once 'DdsLoader/DdsController.php';
+require_once 'DdsLoader/DBs/DdsDbRedshift.php';
 
 try {
 
@@ -37,7 +38,7 @@ try {
         "IntacctDds2014"
     );
 
-    DdsDbManager::rebuildSchema($intacctPg, $session);
+    DdsController::runDdsJob('winter_release', api_post::DDS_JOBTYPE_ALL, $session);
 
     echo "done!";
 }
