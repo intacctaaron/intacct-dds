@@ -16,7 +16,13 @@ echo "<pre>";
 try {
 
     $sess = new api_session();
-    $sess->connectCredentials('DDS_ATLAS', 'Aaron', 'As123456!', 'intacct_dev', 'isa9Shixa');
+    $sess->connectCredentials(
+        $_REQUEST['IntacctCompanyId'],
+        $_REQUEST['IntacctUserId'],
+        $_REQUEST['IntacctPwd'],
+        $_REQUEST['SenderId'],
+        $_REQUEST['SenderPwd']
+    );
 
     echo DdsDbManager::getSchemaDdl($sess);
 

@@ -11,26 +11,26 @@
  * without prior written consent from Intacct Corporation.
  */
 
-include_once 'DdsLoader/DdsDbRedshift.php';
-include_once 'DdsLoader/DdsStorageS3.php';
+include_once 'DdsLoader/DBs/DdsDbRedshift.php';
+include_once 'DdsLoader/storage/DdsStorageS3.php';
 
 try {
     // get the DB connection
-    $dbConn = new DdsDbRedshift(
-        "dds-dev.c808ui4qmvc1.us-west-2.redshift.amazonaws.com",
-        "asimcmpyawana",
-        "ddsdev",
-        "ExodusDds14"
+    $intacctPg = new DdsDbRedshift(
+        $_SERVER['RedShiftURL'],
+        $_SERVER['RedShiftDB'],
+        $_SERVER['RedShiftUser'],
+        $_SERVER['RedShiftPWD']
     );
 
     // get the storage object
     $stS3 = new DdsStorageS3(
         'intacct.ddsdev', '',
-        'AKIAI6MGW6K3RUHM7RJA',
-        'f2x9TXA8eub7btfnK/GdZIJ0mlpIdRYC3uYFK8gL'
+        $_SERVER['AWSAccessKeyId'],
+        $_SERVER['AWSAccessKey']
     );
 
-    $dbConn->loadAll('VENDOR', $stS3);
+    $intacctPg->loadAll('CUSTOMER', $stS3);
 
 
 } catch (Exception $ex) {

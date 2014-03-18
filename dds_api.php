@@ -23,7 +23,7 @@ try {
     }
 
     $sess = new api_session();
-    $sess->connectSessionId($sessionId, 'intacct_dev', 'isa9Shixa');
+    $sess->connectSessionId($sessionId, $_REQUEST['tm_senderid'], $_REQUEST['tm_senderpwd']);
 
     switch($method) {
 

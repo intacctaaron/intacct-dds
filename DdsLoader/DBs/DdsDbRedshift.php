@@ -58,7 +58,7 @@ class DdsDbRedshift extends DdsDbPostgres
         $sql = "copy $object from 's3://" . $s3->getBucket() . $path . "' credentials 'aws_access_key_id=" . $s3->getKeyId() . ";aws_secret_access_key=" . $s3->getKey() .
             "' timeformat 'YYYY-MM-DDTHH:MI:SSZ' removequotes ignoreheader 1 delimiter ',';";
         try {
-            $this->execStmt($sql);
+            $res = $this->execStmt($sql);
         } catch (Exception $ex) {
             $sql = "select * from stl_load_errors where starttime = (select max(starttime) from stl_load_errors);";
             $errors = $this->query($sql);

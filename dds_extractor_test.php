@@ -25,7 +25,12 @@ try {
     $session = $memcache->get($key);
     if ($session === false) {
         $session = new api_session();
-        $session->connectCredentials('asim_cmpy_awana', 'Aman', 'Aa123456!', 'intacct_dev', 'babbage');
+        $session->connectCredentials(
+            $_REQUEST['IntacctCompanyId'],
+            $_REQUEST['IntacctUserId'],
+            $_REQUEST['IntacctPwd'],
+            $_REQUEST['SenderId'],
+            $_REQUEST['SenderPwd']);
         $memcache->set($key, $session, null, 300);
     }
 

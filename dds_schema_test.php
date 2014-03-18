@@ -27,18 +27,26 @@ try {
     $session = $memcache->get($key);
     if ($session === false) {
         $session = new api_session();
-        $session->connectCredentials('DDS_ATLAS', 'Aaron', 'As123456!', 'intacct_dev', 'isa9Shixa');
+        $session->connectCredentials(
+            $_REQUEST['IntacctCompanyId'],
+            $_REQUEST['IntacctUserId'],
+            $_REQUEST['IntacctPwd'],
+            $_REQUEST['SenderId'],
+            $_REQUEST['SenderPwd']
+        );
         $memcache->set($key, $session, null, 300);
     }
 
     $intacctPg = new DdsDbRedshift(
-        "intacct-dds-dmllc.c808ui4qmvc1.us-west-2.redshift.amazonaws.com",
-        "ddsdmllc",
-        "ddsuser",
-        "IntacctDds2014"
+        $_REQUEST['RedShiftURL'],
+        $_REQUEST['RedShiftDB'],
+        $_REQUEST['RedShiftUser'],
+        $_REQUEST['RedShiftPwd']
     );
 
-    DdsController::runDdsJob('winter_release', api_post::DDS_JOBTYPE_ALL, $session);
+    DdsDbManager::rebuildSchema($intacctPg, $session);
+    //DdsController::runDdsJob('winter_release', api_post::DDS_JOBTYPE_ALL, $session);
+
 
     echo "done!";
 }
