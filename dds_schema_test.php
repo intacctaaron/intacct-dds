@@ -28,24 +28,24 @@ try {
     if ($session === false) {
         $session = new api_session();
         $session->connectCredentials(
-            $_REQUEST['IntacctCompanyId'],
-            $_REQUEST['IntacctUserId'],
-            $_REQUEST['IntacctPwd'],
-            $_REQUEST['SenderId'],
-            $_REQUEST['SenderPwd']
+            $_SERVER['IntacctCompanyId'],
+            $_SERVER['IntacctUserId'],
+            $_SERVER['IntacctPwd'],
+            $_SERVER['SenderId'],
+            $_SERVER['SenderPwd']
         );
         $memcache->set($key, $session, null, 300);
     }
 
     $intacctPg = new DdsDbRedshift(
-        $_REQUEST['RedShiftURL'],
-        $_REQUEST['RedShiftDB'],
-        $_REQUEST['RedShiftUser'],
-        $_REQUEST['RedShiftPwd']
+        $_SERVER['RedShiftURL'],
+        $_SERVER['RedShiftDB'],
+        $_SERVER['RedShiftUser'],
+        $_SERVER['RedShiftPwd']
     );
 
-    DdsDbManager::rebuildSchema($intacctPg, $session);
-    //DdsController::runDdsJob('winter_release', api_post::DDS_JOBTYPE_ALL, $session);
+    //DdsDbManager::rebuildSchema($intacctPg, $session);
+    DdsController::runDdsJob('ardetail', api_post::DDS_JOBTYPE_ALL, $session);
 
 
     echo "done!";

@@ -34,10 +34,12 @@ class DdsDbRedshift extends DdsDbPostgres
     {
         $pgConn = pg_connect("host=$host dbname=$db port=$port user=$user password=$pwd");
         if ($pgConn === false) {
+            /** @noinspection PhpParamsInspection */
             throw new Exception(pg_last_error($pgConn));
         }
         $this->dbConn = $pgConn;
     }
+
     /**
      * Perform a complete load on an object
      *
@@ -45,6 +47,7 @@ class DdsDbRedshift extends DdsDbPostgres
      *
      * @param DdsStorageS3 $s3     instance of a storage object
      *
+     * @throws Exception
      * @return null
      */
     public function loadAll($object, DdsStorageS3 $s3)
@@ -55,14 +58,14 @@ class DdsDbRedshift extends DdsDbPostgres
 
         $path = ($s3->getPath() !== '') ? '/' . $s3->getPath() . '/' . $object : '/' . $object . '.all';
 
-        $sql = "copy $object from 's3://" . $s3->getBucket() . $path . "' credentials 'aws_access_key_id=" . $s3->getKeyId() . ";aws_secret_access_key=" . $s3->getKey() .
+        $sqlCopy = "copy $object from 's3://" . $s3->getBucket() . $path . "' credentials 'aws_access_key_id=" . $s3->getKeyId() . ";aws_secret_access_key=" . $s3->getKey() .
             "' timeformat 'YYYY-MM-DDTHH:MI:SSZ' removequotes ignoreheader 1 delimiter ',';";
         try {
-            $res = $this->execStmt($sql);
+            $this->execStmt($sqlCopy);
         } catch (Exception $ex) {
             $sql = "select * from stl_load_errors where starttime = (select max(starttime) from stl_load_errors);";
             $errors = $this->query($sql);
-            throw new Exception("Unable to run copy command.  Errors:\n" . var_export($errors, true));
+            throw new Exception("Unable to run copy command.  Errors:\n" . var_export($errors, true) . "\nSQL:$sqlCopy");
         }
     }
 

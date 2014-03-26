@@ -1,9 +1,14 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: aharris
- * Date: 3/10/14
- * Time: 1:48 PM
+ * File dds_api.php
+ *
+ * @author    Aaron Harris <aharris@intacct.com>
+ * @copyright 2014 Intacct Corporation
+ *
+ * This document contains trade secret data that belongs to Intacct
+ * Corporation and is protected by the copyright laws.  Information
+ * herein may not be used, copied or disclosed in whole or in part
+ * without prior written consent from Intacct Corporation.
  */
 
 header('Content-Type:text');
@@ -23,7 +28,7 @@ try {
     }
 
     $sess = new api_session();
-    $sess->connectSessionId($sessionId, $_REQUEST['tm_senderid'], $_REQUEST['tm_senderpwd']);
+    $sess->connectSessionId($sessionId, $_SERVER['tm_senderid'], $_SERVER['tm_senderpwd']);
 
     switch($method) {
 

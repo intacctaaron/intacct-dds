@@ -39,6 +39,7 @@ class DdsDbPostgres extends DdsDb
     {
         $pgConn = pg_connect("host=$host dbname=$db port=$port user=$user password=$pwd");
         if ($pgConn === false) {
+            /** @noinspection PhpParamsInspection */
             throw new Exception(pg_last_error($pgConn));
         }
         $this->dbConn = $pgConn;

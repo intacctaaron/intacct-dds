@@ -3,7 +3,7 @@
  * File DdsStorageS3.php contains the class DdsStorageS3.php
  *
  * @author    Aaron Harris <aharris@intacct.com>
- * @copyright 2000-2013 Intacct Corporation
+ * @copyright 2014 Intacct Corporation
  *
  * This document contains trade secret data that belongs to Intacct
  * Corporation and is protected by the copyright laws.  Information
