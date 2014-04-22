@@ -11,16 +11,22 @@
  * without prior written consent from Intacct Corporation.
  */
 
-include_once 'DdsDbManager.php';
+require_once 'DdsLoader/DdsDbManager.php';
+require_once 'intacctws-php/api_ddsJobAry.php';
 
+/**
+ * Class DdsController
+ */
 class DdsController
 {
 
     /**
      * Generate the DDL SQL for all objects and return as text
      *
-     * @param api_session $sess
+     * @param api_session $sess Connected api_session object
+     *
      * @return string
+     *
      */
     public static function getSchemaDdl(api_session $sess)
     {
@@ -31,7 +37,9 @@ class DdsController
     /**
      * Get the list of exposed DDS objects and create a record for each in the DDS Admin Application
      *
-     * @param api_session $sess
+     * @param api_session $sess Connected api_session object
+     *
+     * @return null
      */
     public static function generateDdsObjectList(api_session $sess)
     {
@@ -61,23 +69,81 @@ class DdsController
     /**
      * Run a DdsJob on an object
      *
-     * @param $object
-     * @param $jobType
-     * @param api_session $sess
-     * @param null $timestamp
+     * @param string      $object       integration name for object on which to run the job
+     * @param string      $jobType      One of the valid api_post::DDS_JOBTYPE* constants
+     * @param string      $cloudStorage The name of a valid Cloud Storage destination
+     * @param api_session $sess         Connected api_session object
+     * @param null        $timestamp    iso 8601 valid timestamp value
+     * @param bool        $wait         Whether or not to wait for the job to complete before returning control
+     *
+     * @return null
      * @throws Exception
      */
-    public static function runDdsJob($object, $jobType, api_session $sess, $timestamp = NULL)
-    {
+    public static function runDdsJob(
+        $object, $jobType, $cloudStorage, api_session $sess, $timestamp = null, $wait = false
+    ) {
         if ($jobType !== api_post::DDS_JOBTYPE_ALL && $jobType !== api_post::DDS_JOBTYPE_CHANGE) {
             throw new Exception("Invalid job type.  Use one of the api_post DDS constants.");
         }
 
-        // Get the configured Cloud Storage destination
-        $destinationObj = api_post::readByName('dds_preference', 'CLOUD_STORAGE', 'value', $sess);
-
         // Run the job
-        api_post::runDdsJob($sess, $object, $destinationObj['value'], $jobType, $timestamp);
+        /** @var $ddsJob api_ddsJob */
+        $ddsJob = api_post::runDdsJob($sess, $object, $cloudStorage, $jobType, $timestamp);
+        api_post::create(array($ddsJob->toApiArray()), $sess);
+        $ddsJobKey = $ddsJob->getKey();
 
+        if ($wait === false) {
+            // kick off a "Check on the job process"
+            // this needs to be an async process that comes back in through the API
+            return;
+        } else {
+            DdsController::trackDdsJob($ddsJobKey, $sess);
+        }
+
+    }
+
+    /**
+     * Wait on a DDS Job to complete and update the DDS app
+     *
+     * @param int         $ddsJobKey Key to the DDS job
+     * @param api_session $sess      Connected api_session object
+     *
+     * @return null
+     */
+    public static function trackDdsJob($ddsJobKey, api_session $sess)
+    {
+        // check on the job!
+        // set some sort of max try.  How long to keep trying??
+        $maxWait = 60*60; // one hour
+        $cliff = 60;
+        $shortTerm = 5;
+        $longTerm = 20;
+
+        // wait 5 seconds?  Going down to 1 minute after 1 minute?
+        $totesTime = 0;
+        $startTime = time();
+
+        while ($totesTime < $maxWait) {
+            $ddsJobAry = api_post::read('DDSJOB', $ddsJobKey, '*', $sess);
+            $ddsJob = new api_ddsJobAry($ddsJobAry);
+            /** @var $ddsJob api_ddsJob */
+            if ($ddsJob->getStatus() == api_ddsJob::DDS_STATUS_FAILED
+                || $ddsJob->getStatus() == api_ddsJob::DDS_STATUS_COMPLETED
+            ) {
+                // do something about the job getting finished
+                // start the extractor?
+                api_post::upsert('dds_job', array($ddsJob->toApiArray()), 'name', 'id', $sess);
+                api_post::create($ddsJob->toApiArrayFiles(), $sess);
+                return;
+            } else {
+                // write an update to the DDS Job Manager
+                if ((time() - $startTime) > $cliff) {
+                    sleep($longTerm);
+                } else {
+                    sleep($shortTerm);
+                }
+                $totesTime = (time() - $startTime);
+            }
+        }
     }
 }

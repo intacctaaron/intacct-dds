@@ -27,8 +27,14 @@ try {
         throw new Exception('Invalid arguments.  Please pass sessionId, endPoint, and method.');
     }
 
-    $sess = new api_session();
-    $sess->connectSessionId($sessionId, $_SERVER['tm_senderid'], $_SERVER['tm_senderpwd']);
+    $sessKey = "DDS_SESSION";
+    $memcache = new Memcache();
+    $memcache->connect("localhost", 11211);
+    if ($memcache->get($sessKey) === false) {
+        $sess = new api_session();
+        $sess->connectSessionId($sessionId, $_SERVER['tm_senderid'], $_SERVER['tm_senderpwd']);
+        $memcache->set($sessKey, $sess);
+    }
 
     switch($method) {
 
@@ -36,11 +42,14 @@ try {
             echo DdsController::getSchemaDdl($sess);
             break;
         case 'runDdsJob':
+            // TODO: Need to accept Cloud Storage as argument
             // did we get the required arguments?
             $object = array_key_exists('object', $_REQUEST) ? $_REQUEST['object'] : NULL;
             if ($object === NULL) {
                 throw new Exception("The method runDdsJob requires the argument 'object'.");
             }
+
+            $wait = array_key_exists('wait', $_REQUEST) ? $_REQUEST['wait'] : false;
 
             $jobType = array_key_exists('jobType', $_REQUEST) ? $_REQUEST['jobType'] : NULL;
             if ($jobType === NULL) {
@@ -54,7 +63,7 @@ try {
                 }
             }
 
-            DdsController::runDdsJob($object, $jobType, $sess);
+            DdsController::runDdsJob($object, $jobType, $sess, $timestamp, $wait);
             break;
         case 'generateDdsObjectList':
             DdsController::generateDdsObjectList($sess);

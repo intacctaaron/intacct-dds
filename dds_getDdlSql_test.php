@@ -6,10 +6,10 @@
  * Time: 1:00 PM
  */
 
-include_once 'intacctws-php/api_session.php';
-include_once 'intacctws-php/api_post.php';
+require_once 'intacctws-php/api_session.php';
+require_once 'intacctws-php/api_post.php';
 
-include_once 'DdsLoader/DdsDbManager.php';
+require_once 'DdsLoader/DdsDbManager.php';
 
 echo "<pre>";
 
@@ -17,11 +17,11 @@ try {
 
     $sess = new api_session();
     $sess->connectCredentials(
-        $_REQUEST['IntacctCompanyId'],
-        $_REQUEST['IntacctUserId'],
-        $_REQUEST['IntacctPwd'],
-        $_REQUEST['SenderId'],
-        $_REQUEST['SenderPwd']
+        $_SERVER['IntacctCompanyId'],
+        $_SERVER['IntacctUserId'],
+        $_SERVER['IntacctPwd'],
+        $_SERVER['SenderId'],
+        $_SERVER['SenderPwd']
     );
 
     echo DdsDbManager::getSchemaDdl($sess);

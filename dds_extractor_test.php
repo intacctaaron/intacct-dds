@@ -14,7 +14,7 @@
 require_once 'intacctws-php/api_session.php';
 require_once 'intacctws-php/api_post.php';
 
-require_once 'DdsLoader/DdsExtractor.php';
+require_once 'DdsLoader/DdsController.php';
 
 try {
 
@@ -26,17 +26,17 @@ try {
     if ($session === false) {
         $session = new api_session();
         $session->connectCredentials(
-            $_REQUEST['IntacctCompanyId'],
-            $_REQUEST['IntacctUserId'],
-            $_REQUEST['IntacctPwd'],
-            $_REQUEST['SenderId'],
-            $_REQUEST['SenderPwd']);
+            $_SERVER['IntacctCompanyId'],
+            $_SERVER['IntacctUserId'],
+            $_SERVER['IntacctPwd'],
+            $_SERVER['SenderId'],
+            $_SERVER['SenderPwd']
+        );
         $memcache->set($key, $session, null, 300);
     }
 
     // let's just extract the glaccount object
-    $ddsExtractor = new DdsExtractor($session, 'Dropbox Aaron');
-    $ddsExtractor->getAll('VENDOR');
+    DdsController::runDdsJob('VENDOR', api_post::DDS_JOBTYPE_ALL, "AHARRIS Dropbox", $session, null, true);
 
 }
 catch (Exception $ex) {
