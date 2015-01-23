@@ -65,7 +65,10 @@ class DdsDbRedshift extends DdsDbPostgres
         } catch (Exception $ex) {
             $sql = "select * from stl_load_errors where starttime = (select max(starttime) from stl_load_errors);";
             $errors = $this->query($sql);
-            throw new Exception("Unable to run copy command.  Errors:\n" . var_export($errors, true) . "\nSQL:$sqlCopy");
+            throw new Exception(
+                $ex->getMessage() . "\n" .
+                "Unable to run copy command.  Errors:\n" . var_export($errors, true) . "\nSQL:$sqlCopy"
+            );
         }
     }
 

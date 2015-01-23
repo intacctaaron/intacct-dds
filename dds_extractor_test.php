@@ -36,7 +36,7 @@ try {
     }
 
     // let's just extract the glaccount object
-    DdsController::runDdsJob('VENDOR', api_post::DDS_JOBTYPE_ALL, "AHARRIS Dropbox", $session, null, true);
+    DdsController::runDdsJob('GLACCOUNT', api_post::DDS_JOBTYPE_ALL, "Aaron's Dropbox", $session, null, true);
 
 }
 catch (Exception $ex) {

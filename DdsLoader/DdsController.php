@@ -11,7 +11,7 @@
  * without prior written consent from Intacct Corporation.
  */
 
-require_once 'DdsLoader/DdsDbManager.php';
+require_once 'DdsDbManager.php';
 require_once 'intacctws-php/api_ddsJobAry.php';
 
 /**
@@ -86,6 +86,9 @@ class DdsController
             throw new Exception("Invalid job type.  Use one of the api_post DDS constants.");
         }
 
+        // test the file configuration
+        //$fileConf = new api_ddsFileConfiguration('{|}', null, true, api_ddsFileConfiguration::DDS_FILETYPE_WINDOWS);
+
         // Run the job
         /** @var $ddsJob api_ddsJob */
         $ddsJob = api_post::runDdsJob($sess, $object, $cloudStorage, $jobType, $timestamp);
@@ -95,6 +98,10 @@ class DdsController
         if ($wait === false) {
             // kick off a "Check on the job process"
             // this needs to be an async process that comes back in through the API
+
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, "http://" . $_SERVER['SERVER_NAME'] . "/" . $_SERVER['REQUEST_URI']);
+
             return;
         } else {
             DdsController::trackDdsJob($ddsJobKey, $sess);
@@ -117,31 +124,49 @@ class DdsController
         $maxWait = 60*60; // one hour
         $cliff = 60;
         $shortTerm = 5;
-        $longTerm = 20;
+        $longTerm = 120;
 
         // wait 5 seconds?  Going down to 1 minute after 1 minute?
         $totesTime = 0;
         $startTime = time();
 
         while ($totesTime < $maxWait) {
+
             $ddsJobAry = api_post::read('DDSJOB', $ddsJobKey, '*', $sess);
             $ddsJob = new api_ddsJobAry($ddsJobAry);
             /** @var $ddsJob api_ddsJob */
+
             if ($ddsJob->getStatus() == api_ddsJob::DDS_STATUS_FAILED
                 || $ddsJob->getStatus() == api_ddsJob::DDS_STATUS_COMPLETED
             ) {
                 // do something about the job getting finished
                 // start the extractor?
                 api_post::upsert('dds_job', array($ddsJob->toApiArray()), 'name', 'id', $sess);
+                $filesAry = $ddsJob->toApiArrayFiles();
+                $filesForApi = array();
+                foreach ($filesAry as $file) {
+                    $filesForApi[] = $file;
+                    if (count($filesForApi) == 100) {
+                        api_post::create($filesForApi, $sess);
+                        $filesForApi = array();
+                    }
+                }
+                if (count($filesForApi) > 0) {
+                    api_post::create($filesForApi, $sess);
+                }
+
+
                 api_post::create($ddsJob->toApiArrayFiles(), $sess);
                 return;
             } else {
                 // write an update to the DDS Job Manager
+                api_post::upsert('dds_job', array($ddsJob->toApiArray()), 'name', 'id', $sess);
                 if ((time() - $startTime) > $cliff) {
                     sleep($longTerm);
                 } else {
                     sleep($shortTerm);
                 }
+
                 $totesTime = (time() - $startTime);
             }
         }

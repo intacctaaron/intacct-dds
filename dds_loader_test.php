@@ -25,13 +25,13 @@ try {
 
     // get the storage object
     $stS3 = new DdsStorageS3(
-        'intacct.test',
+        'intacct.ddsdev',
         'DDS_ATLAS',
         $_SERVER['AWSAccessKeyId'],
         $_SERVER['AWSAccessKey']
     );
 
-    $intacctPg->loadAll('ARDETAIL', $stS3);
+    $intacctPg->loadAll('REPORTINGPERIOD', $stS3);
 
 
 } catch (Exception $ex) {
