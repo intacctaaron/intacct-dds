@@ -30,13 +30,14 @@ try {
             $_SERVER['IntacctUserId'],
             $_SERVER['IntacctPwd'],
             $_SERVER['SenderId'],
-            $_SERVER['SenderPwd']
+            $_SERVER['SenderPwd'], null, null,
+            $_SERVER['endPoint']
         );
         $memcache->set($key, $session, null, 300);
     }
 
     // let's just extract the glaccount object
-    DdsController::runDdsJob('GLACCOUNT', api_post::DDS_JOBTYPE_ALL, "Aaron's Dropbox", $session, null, true);
+    DdsController::runDdsJob('GLENTRY', api_post::DDS_JOBTYPE_CHANGE, "AHARRIS Dropbox", $session, "2015-03-02T05:55:22-08:00", true);
 
 }
 catch (Exception $ex) {

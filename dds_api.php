@@ -31,6 +31,7 @@ try {
         ignore_user_abort(true);
     }
 
+    // initiate memcache and Intacct API session
     $sessKey = "DDS_SESSION_" . $sessionId;
     $memcache = new Memcache();
     $memcache->connect("localhost", 11211);

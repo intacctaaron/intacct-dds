@@ -27,9 +27,11 @@ try {
             $_SERVER['IntacctUserId'],
             $_SERVER['IntacctPwd'],
             $_SERVER['SenderId'],
-            $_SERVER['SenderPwd']
+            $_SERVER['SenderPwd'],
+            null, null,
+            $_SERVER['endPoint']
         );
-        $memcache->set($key, $sess, 300);
+        $memcache->set($key, $sess, 3000);
     }
 
     DdsController::generateDdsObjectList($sess);
